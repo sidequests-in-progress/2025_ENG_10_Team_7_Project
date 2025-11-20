@@ -1,32 +1,54 @@
 import time
 import board
-import digitalio
-from adafruit_circuitplayground import cp
 import pwmio
 from adafruit_motor import servo
+from adafruit_circuitplayground import cp
 
-# Set up pin A1 as an output for the LED
-led = digitalio.DigitalInOut(board.A1)
-led.direction = digitalio.Direction.OUTPUT
 
-pwm = pwmio.PWMOut(board.A2, duty_cycle=0, frequency=50)
+# Servo 1 setup
+pwm1 = pwmio.PWMOut(board.A1, duty_cycle=0, frequency=50)
+servo1 = servo.Servo(pwm1)
+angle1 = 90
+servo1.angle = angle1
 
-my_servo = servo.Servo(pwm)
-angle = 90  # start centered
-my_servo.angle = angle
+# Servo 2 setup
+pwm2 = pwmio.PWMOut(board.A2, duty_cycle=0, frequency=50)
+servo2 = servo.Servo(pwm2)
+angle2 = 90
+servo2.angle = angle2
+
+dir1 = 1     # Servo 1 direction (+1 or -1)
+dir2 = 1     # Servo 2 direction (+1 or -1)
+
+# Previous button state for new button direction
+lastA = False
+lastB = False
 
 while True:
-    if cp.button_a: # button a spins the motor clockwise
-        angle -= 10
-        if angle < 0:
-            angle = 0
-        my_servo.angle = angle
-        time.sleep(0.2)
 
-    if cp.button_b: # button b spins the motor counter clockwise
-        angle += 10
-        if angle > 180:
-            angle = 180
-        my_servo.angle = angle
-        time.sleep(0.2)
+# Button A controls servo 1
+    if cp.button_a:
+        if not lastA:       # New press flips direction
+            dir1 *= -1
 
+        # Move servo while held
+        angle1 += dir1 * 3      # Step size
+        angle1 = max(0, min(180, angle1))
+        servo1.angle = angle1
+
+    lastA = cp.button_a  # Update last state
+
+# Button A controls servo 2
+    if cp.button_b:
+        if not lastB:       # New press flips direction
+            dir2 *= -1
+
+        # Move servo while held
+        angle2 += dir2 * 3
+        angle2 = max(0, min(180, angle2))
+        servo2.angle = angle2
+
+    lastB = cp.button_b  # Update last state
+
+
+    time.sleep(0.03)   # Adjust for speed
